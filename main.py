@@ -1,6 +1,8 @@
 import requests
 import json
-from pprint import pprint
+import time
+from tqdm import tqdm
+
 
 with open('tokenvk.txt', 'r') as file_object:
     access_token = file_object.read().strip()
@@ -10,7 +12,7 @@ with open('tokenyan.txt', 'r') as f:
 
 class VK:
 
-    def __init__(self, access_token_,id,version='5.131'):
+    def __init__(self, access_token_, id, version='5.131'):
         self.access_token_ = access_token_
         self.token = token
         self.id = id
@@ -41,29 +43,22 @@ class VK:
                     best_type = size["type"]
             url_list.append(best_url)
             best_type_list.append(best_type)
-        # pprint(url_list)
 
         file_name = []
-        req = self.photo_get()["response"]["items"]  # [0]["sizes"][0]
+        req = self.photo_get()["response"]["items"]
         for item in req:
             if str(item['likes']['count'])+'.jpg' not in file_name:
                 file_name.append(str(item['likes']['count']) + '.jpg')
             else:
                 file_name.append(str(item['likes']['count']) + '_' + str(item['date']) + '.jpg')
-
-
-        return (url_list, file_name,best_type_list)
+        return (url_list, file_name, best_type_list)
 
     def make_json(self):
-
         json_file = [dict(zip(self.json_get()[1], self.json_get()[2]))]
-
         with open('jfile.json', 'w') as f:
             json.dump(json_file, f)
         print('Файл jfile.json - создан')
         return
-
-
 
     def get_headers(self):
         return {
@@ -79,32 +74,24 @@ class VK:
         response = requests.put(url, headers=headers, params=params)
         return response
 
-
     def upload_file_to_disk(self):
         self.make_json()
-        self._folder_('1')
-        print('''Папка '1' для копирования фото создана ''')
-
+        self._folder_(id)
+        print('Папка для копирования фото создана')
         url1 = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
-        for i in range(5):
+
+        for i in tqdm(range(5)):
+            time.sleep(1)
             url = self.json_get()[0][i]
-            path = '/1/'+self.json_get()[1][i]
-
+            path = '/' + str(id) + '/' + self.json_get()[1][i]
             headers = self.get_headers()
-            params = {'url': url,"path": path}
-            response = requests.post(url1, headers=headers, params=params)
-
-        return response
-
-
+            params = {'url': url, "path": path}
+            requests.post(url1, headers=headers, params=params)
+        print('Загрузка завершена')
+        return
 
 
 if __name__ == '__main__':
-
-
-
     id = int(input('Введите id пользователя:'))
     vk = VK(access_token, id)
-    # pprint(vk.json_get())
     vk.upload_file_to_disk()
-
