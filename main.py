@@ -34,23 +34,21 @@ class VK:
                     best_type = size["type"]
             url_list.append(best_url)
             best_type_list.append(best_type)
-        # print((url_list, best_type_list))
-        return (url_list, best_type_list)
+        # pprint(url_list)
 
-    def json_file_make(self):
         file_name = []
-        req = self.photo_get()["response"]["items"]
+        req = self.photo_get()["response"]["items"]  # [0]["sizes"][0]
         for item in req:
             if str(item['likes']['count'])+'.jpg' not in file_name:
                 file_name.append(str(item['likes']['count']) + '.jpg')
             else:
                 file_name.append(str(item['likes']['count']) + '_' + str(item['date']) + '.jpg')
 
-        json_file = [dict(zip(file_name, self.json_get()[1]))]
+        json_file = [dict(zip(file_name, best_type_list))]
 
         with open('jfile.json', 'w') as f:
             json.dump(json_file, f)
-        return json_file
+        return url_list
 
 
 class YaUploader:
@@ -63,19 +61,28 @@ class YaUploader:
             'Authorization': 'OAuth {}'.format(self.token)
         }
 
-    def folder(self, path):
+    def _folder_(self, folder_name):
         url = 'https://cloud-api.yandex.net/v1/disk/resources'
         headers = self.get_headers()
-        params = {'path': path}
+        params = {'path': folder_name}
         response = requests.put(url, headers=headers, params=params)
-        return response.json()
+        return
+
 
     def upload_file_to_disk(self):
-        req_url = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
+
+        url1 = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
+        url = 'https://sun9-63.userapi.com/c9591/u00001/136592355/w_62aef149.jpg'
+
+        path = '/1/777'
+        self._folder_('1')
         headers = self.get_headers()
-        params = {'url': url, 'path': path}
-        response = requests.post(req_url, headers=headers, params=params)
-        return response.json()
+        params = {'url': url,"path": path}
+        response = requests.post(url1, headers=headers, params=params)
+
+        return response
+
+
 
 
 if __name__ == '__main__':
@@ -86,14 +93,13 @@ if __name__ == '__main__':
     user_id = int(input('Введите id пользователя:'))
     vk = VK(access_token, user_id)
     pprint(vk.json_get())
-    print(vk.json_file_make())
 
     with open('tokenyan.txt', 'r') as file_object:
         token = file_object.read().strip()
     
     ya = YaUploader(token)
-    path = 1
-    ya.folder(path)
-    url = 'https%3A%2F%2Fsun2.43222.userapi.com%2Fimpf%2Fc210%2Fv210001%2F6%2F53_VwoACy4I.jpg%3Fsize%3D2560x1913%26quality%3D96%26sign%3Dc55f340348a35dd86542875a57ad8537%26c_uniq_tag%3DRvD_7O5cznGnLGO2duPrnqHQrL-0KVHqGZMBe4FtTqI%26type%3Dalbum>'
 
-    # ya.upload_file_to_disk(url, path)
+
+
+    ya.upload_file_to_disk()
+
