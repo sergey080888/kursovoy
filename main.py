@@ -77,7 +77,7 @@ class VK:
     def upload_file_to_disk(self):
         self.make_json()
         self._folder_(id)
-        print('Папка для копирования фото создана')
+        print('Папка для копирования фото создана ')
         url1 = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
 
         for i in tqdm(range(5)):
