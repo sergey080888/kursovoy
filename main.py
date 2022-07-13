@@ -12,17 +12,17 @@ with open('tokenyan.txt', 'r') as f:
 
 class VK:
 
-    def __init__(self, access_token_, id, version='5.131'):
+    def __init__(self, access_token_, version='5.131'):
         self.access_token_ = access_token_
         self.token = token
-        self.id = id
+        self.id_1 = id_1
         self.version = version
         self.token = token
         self.params = {'access_token': self.access_token_, 'v': self.version}
 
     def photo_get(self):
         url = 'https://api.vk.com/method/photos.get'
-        params = {'owner_id': self.id, 'album_id': 'profile', 'extended': 1, 'photo_sizes': 1, 'count': 1000}
+        params = {'owner_id': self.id_1, 'album_id': 'profile', 'extended': 1, 'photo_sizes': 1, 'count': 1000}
         response = requests.get(url, params={**self.params, **params})
 
         return response.json()
@@ -51,7 +51,7 @@ class VK:
                 file_name.append(str(item['likes']['count']) + '.jpg')
             else:
                 file_name.append(str(item['likes']['count']) + '_' + str(item['date']) + '.jpg')
-        return (url_list, file_name, best_type_list)
+        return url_list, file_name, best_type_list
 
     def make_json(self):
         json_file = [dict(zip(self.json_get()[1], self.json_get()[2]))]
@@ -76,22 +76,25 @@ class VK:
 
     def upload_file_to_disk(self):
         self.make_json()
-        self._folder_(id)
-        print('Папка для копирования фото создана ')
         url1 = 'https://cloud-api.yandex.net/v1/disk/resources/upload'
-
-        for i in tqdm(range(5)):
-            time.sleep(1)
-            url = self.json_get()[0][i]
-            path = '/' + str(id) + '/' + self.json_get()[1][i]
-            headers = self.get_headers()
-            params = {'url': url, "path": path}
-            requests.post(url1, headers=headers, params=params)
-        print('Загрузка завершена')
-        return
+        if quantity <= len(self.json_get()[0]):
+            self._folder_(id_1)
+            print('Папка для копирования фото создана ')
+            for i in tqdm(range(quantity)):
+                time.sleep(1)
+                url = self.json_get()[0][i]
+                path = '/' + str(id_1) + '/' + self.json_get()[1][i]
+                headers = self.get_headers()
+                params = {'url': url, "path": path}
+                requests.post(url1, headers=headers, params=params)
+            print('Загрузка завершена')
+            return
+        else:
+            print('Количество запрашиваемых фото для сохранения больше,чем есть в альбоме')
 
 
 if __name__ == '__main__':
-    id = int(input('Введите id пользователя:'))
-    vk = VK(access_token, id)
+    id_1 = int(input('Введите id пользователя:'))
+    quantity = int(input('Введите кол-во фото для скачивания:'))
+    vk = VK(access_token)
     vk.upload_file_to_disk()
